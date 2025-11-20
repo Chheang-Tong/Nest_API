@@ -9,7 +9,8 @@ import { UsersService } from '../../users/users.service';
 
 type JwtPayload = {
   sub: number;
-  email: string;
+  email?: string | null;
+  phoneNumber?: string | null;
   name: string;
 };
 
@@ -35,9 +36,12 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     if (!user) {
       throw new UnauthorizedException();
     }
+
+    // this becomes req.user
     return {
       id: user.id,
       email: user.email,
+      phoneNumber: user.phoneNumber,
       name: user.name,
     };
   }

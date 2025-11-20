@@ -25,3 +25,5 @@ npm install @nestjs/typeorm typeorm pg
 # 5. Dev tools (ESLint + TypeScript latest)
 # ================================
 npm install -D @typescript-eslint/eslint-plugin@latest @typescript-eslint/parser@latest typescript@latest
+npm i nodemailer twilio
+npm i -D @types/nodemailer

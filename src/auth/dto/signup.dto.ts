@@ -1,9 +1,23 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
-import { IsEmail, IsString, MinLength } from 'class-validator';
+import {
+  IsEmail,
+  IsOptional,
+  IsString,
+  Matches,
+  MinLength,
+} from 'class-validator';
 
 export class SignupDto {
+  @IsOptional()
   @IsEmail()
-  email!: string;
+  email?: string;
+
+  @IsOptional()
+  @IsString()
+  @Matches(/^\+[1-9]\d{7,14}$/, {
+    message: 'phoneNumber must be in E.164 format, e.g. +85598214986',
+  })
+  phoneNumber?: string;
 
   @IsString()
   @MinLength(6)
