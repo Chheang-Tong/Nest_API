@@ -1,35 +1,27 @@
-// import { Module } from '@nestjs/common';
-// import { AppController } from './app.controller';
-// import { AppService } from './app.service';
-// import { UsersModule } from './users/users.module';
-// import { AuthModule } from './auth/auth.module';
-
-// @Module({
-//   controllers: [AppController],
-//   providers: [AppService],
-//   imports: [UsersModule, AuthModule],
-// })
-// export class AppModule {}
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { User } from './users/entities/user.entities';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
-import { User } from './users/entities';
 import { NotificationModule } from './notification/notification.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: 'localhost',
-      port: 5432,
-      username: 'devuser',
-      password: '123456',
-      database: 'nest_auth',
-      entities: [User],
-      synchronize: true,
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        type: 'postgres',
+        host: config.get<string>('DB_HOST', 'localhost'),
+        port: parseInt(config.get<string>('DB_PORT', '5432'), 10),
+        username: config.get<string>('DB_USER', 'devuser'),
+        password: config.get<string>('DB_PASS', '123456'),
+        database: config.get<string>('DB_NAME', 'nest_auth'),
+        entities: [User],
+        synchronize: true, // ok for dev
+      }),
     }),
     UsersModule,
     AuthModule,
