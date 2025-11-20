@@ -41,6 +41,10 @@ export class UsersService {
     return this.usersRepo.save(user);
   }
 
+  async findAll(): Promise<User[]> {
+    return this.usersRepo.find();
+  }
+
   async clearOtp(user: User): Promise<User> {
     user.otpCode = null;
     user.otpExpiresAt = null;
