@@ -42,7 +42,9 @@ export class UsersService {
   }
 
   async findAll(): Promise<User[]> {
-    return this.usersRepo.find();
+    return this.usersRepo.find({
+      select: ['id', 'email', 'phoneNumber', 'name', 'createdAt'],
+    });
   }
 
   async clearOtp(user: User): Promise<User> {
