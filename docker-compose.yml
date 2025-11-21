@@ -26,15 +26,10 @@ services:
       DB_USER: devuser
       DB_PASS: 123456
       DB_NAME: nest_auth
-      NODE_ENV: development
-    # 👇 mount your source code into the container
-    volumes:
-      - .:/usr/src/app
-      - /usr/src/app/node_modules
-    # 👇 run Nest in watch mode
-    command: npm run start:dev
+      NODE_ENV: production
     ports:
       - "3000:3000"
 
 volumes:
   pgdata:
+  

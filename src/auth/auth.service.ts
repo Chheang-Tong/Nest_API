@@ -85,8 +85,7 @@ export class AuthService {
 
     user.otpCode = otp;
     user.otpExpiresAt = expires;
-    await this.usersService.updateUser(user);
-
+    await this.usersService.saveUser(user);
     // send OTP (email / SMS)
     if (user.email) {
       void this.notifications.sendOtpEmail(user.email, user.name, otp);

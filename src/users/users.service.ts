@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entities';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UsersService {
@@ -37,7 +38,29 @@ export class UsersService {
     return this.usersRepo.save(user);
   }
 
-  async updateUser(user: User): Promise<User> {
+  // 🔹 for profile updates (from controller)
+  async updateUser(userId: number, dto: UpdateUserDto): Promise<Partial<User>> {
+    const user = await this.usersRepo.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    if (dto.email !== undefined) user.email = dto.email;
+    if (dto.phoneNumber !== undefined) user.phoneNumber = dto.phoneNumber;
+    if (dto.name !== undefined) user.name = dto.name;
+
+    const saved = await this.usersRepo.save(user);
+    return {
+      id: saved.id,
+      email: saved.email,
+      phoneNumber: saved.phoneNumber,
+      name: saved.name,
+      createdAt: saved.createdAt,
+    };
+  }
+
+  // 🔹 for internal updates (OTP etc.)
+  async saveUser(user: User): Promise<User> {
     return this.usersRepo.save(user);
   }
 
