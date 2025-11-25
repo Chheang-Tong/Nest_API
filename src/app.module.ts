@@ -9,6 +9,8 @@ import { ProductModule } from './product/product.module';
 import { Product } from './product/entities';
 import { CartModule } from './cart/cart.module';
 import { CartItem } from './cart/entities';
+import { SellModule } from './sell/sell.module';
+import { Sell } from './sell/entities';
 
 @Module({
   imports: [
@@ -23,7 +25,7 @@ import { CartItem } from './cart/entities';
         username: config.get<string>('DB_USER', 'devuser'),
         password: config.get<string>('DB_PASS', '123456'),
         database: config.get<string>('DB_NAME', 'nest_auth'),
-        entities: [User, Product, CartItem],
+        entities: [User, Product, CartItem, Sell],
         synchronize: true,
       }),
     }),
@@ -32,6 +34,7 @@ import { CartItem } from './cart/entities';
     NotificationModule,
     ProductModule,
     CartModule,
+    SellModule,
   ],
 })
 export class AppModule {}

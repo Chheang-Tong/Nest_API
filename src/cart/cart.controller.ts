@@ -3,54 +3,99 @@ import {
   Controller,
   Get,
   Param,
-  ParseIntPipe,
   Post,
   Patch,
   Delete,
+  ParseIntPipe,
+  UseGuards,
 } from '@nestjs/common';
 import { CartService } from './cart.service';
 import { AddToCartDto, UpdateCartItemDto } from './dto';
+import { GetUser } from '../auth/decorator';
+import { JwtAuthGuard } from '../auth/guard';
 
 @Controller('cart')
 export class CartController {
   constructor(private readonly cartService: CartService) {}
 
-  // 🔹 Add to cart: POST /cart/:userId/add
-  //    (later: use userId from JWT instead of param)
-  @Post(':userId/add')
+  // 1) Start new cart -> create uuid
+  @UseGuards(JwtAuthGuard)
+  @Post('start')
+  startCart() {
+    return this.cartService.startCart();
+  }
+
+  // 2) Add to cart: POST /cart/uuid/:cartUuid/add
+  @UseGuards(JwtAuthGuard)
+  @Post('uuid/:cartUuid/add')
   addToCart(
-    @Param('userId', ParseIntPipe) userId: number,
+    @Param('cartUuid') cartUuid: string,
+    @GetUser('id') userId: number,
     @Body() dto: AddToCartDto,
   ) {
-    return this.cartService.addToCart(userId, dto);
+    return this.cartService.addToCart(userId, cartUuid, dto);
   }
 
-  // 🔹 Get user's cart: GET /cart/:userId
-  @Get(':userId')
-  getCart(@Param('userId', ParseIntPipe) userId: number) {
-    return this.cartService.getCart(userId);
+  // 3) Get cart by uuid: GET /cart/uuid/:cartUuid
+  @UseGuards(JwtAuthGuard)
+  @Get('uuid/:cartUuid')
+  getCart(@Param('cartUuid') cartUuid: string) {
+    return this.cartService.getCartByUuid(cartUuid);
   }
 
-  // 🔹 Update quantity: PATCH /cart/:userId/item/:itemId
-  @Patch(':userId/item/:itemId')
+  // 4) Update item: PATCH /cart/uuid/:cartUuid/item/:itemId
+  @UseGuards(JwtAuthGuard)
+  @Patch('uuid/:cartUuid/item/:itemId')
   updateItem(
-    @Param('userId', ParseIntPipe) userId: number,
+    @Param('cartUuid') cartUuid: string,
     @Param('itemId', ParseIntPipe) itemId: number,
+    @GetUser('id') userId: number,
     @Body() dto: UpdateCartItemDto,
   ) {
-    return this.cartService.updateItem(userId, itemId, dto);
+    return this.cartService.updateItem(userId, cartUuid, itemId, dto);
   }
 
-  // 🔹 Remove item: DELETE /cart/:userId/item/:itemId
-  @Delete(':userId/item/:itemId')
-  removeItem(
-    @Param('userId', ParseIntPipe) userId: number,
-    @Param('itemId', ParseIntPipe) itemId: number,
+  // 4) Update item by productId: PATCH /cart/uuid/:cartUuid/product/:productId
+  @UseGuards(JwtAuthGuard)
+  @Patch('uuid/:cartUuid/product/:productId')
+  updateItems(
+    @Param('cartUuid') cartUuid: string,
+    @Param('productId', ParseIntPipe) productId: number,
+    @GetUser('id') userId: number,
+    @Body() dto: UpdateCartItemDto,
   ) {
-    return this.cartService.removeItem(userId, itemId);
+    return this.cartService.updateItemByProduct(
+      userId,
+      cartUuid,
+      productId,
+      dto,
+    );
   }
 
-  // 🔹 Clear cart: DELETE /cart/:userId/clear
+  // 5) Remove item: DELETE /cart/uuid/:cartUuid/item/:itemId
+  @UseGuards(JwtAuthGuard)
+  @Delete('uuid/:cartUuid/item/:itemId')
+  removeItem(
+    @Param('cartUuid') cartUuid: string,
+    @Param('itemId', ParseIntPipe) itemId: number,
+    @GetUser('id') userId: number,
+  ) {
+    return this.cartService.removeItem(userId, cartUuid, itemId);
+  }
+
+  // 5) Remove item by productId: DELETE /cart/uuid/:cartUuid/product/:productId
+  @UseGuards(JwtAuthGuard)
+  @Delete('uuid/:cartUuid/product/:productId')
+  removeItems(
+    @Param('cartUuid') cartUuid: string,
+    @Param('productId', ParseIntPipe) productId: number,
+    @GetUser('id') userId: number,
+  ) {
+    return this.cartService.removeItemByProduct(userId, cartUuid, productId);
+  }
+
+  // 6) Clear cart by user (optional; still uses userId)
+  @UseGuards(JwtAuthGuard)
   @Delete(':userId/clear')
   clearCart(@Param('userId', ParseIntPipe) userId: number) {
     return this.cartService.clearCart(userId);

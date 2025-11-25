@@ -14,6 +14,9 @@ export class CartItem {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Column({ type: 'uuid', nullable: true })
+  cartUuid: string | null;
+
   @ManyToOne(() => User, { eager: true, onDelete: 'CASCADE' })
   user: User;
 
