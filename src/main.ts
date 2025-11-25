@@ -1,24 +1,45 @@
+// import { NestFactory } from '@nestjs/core';
+// import { AppModule } from './app.module';
+// import { ValidationPipe } from '@nestjs/common';
+
+// import { join } from 'path';
+// import * as express from 'express';
+// async function bootstrap() {
+//   const app = await NestFactory.create(AppModule);
+
+//   app.use('/uploads', express.static(join(__dirname, '..', 'uploads')));
+
+//   app.useGlobalPipes(
+//     new ValidationPipe({
+//       whitelist: true,
+//       forbidNonWhitelisted: true,
+//       transform: true,
+//     }),
+//   );
+
+//   const port = process.env.PORT || 3000;
+//   await app.listen(port);
+//   console.log(`🚀 App running at http://localhost:${port}`);
+// }
+// void bootstrap();
+
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ValidationPipe } from '@nestjs/common';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
-import { join } from 'path';
-import * as express from 'express';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  app.use('/uploads', express.static(join(__dirname, '..', 'uploads')));
+  const config = new DocumentBuilder()
+    .setTitle('Pepper Shop API')
+    .setDescription('API for products, cart, sell, promotion, reports')
+    .setVersion('1.0')
+    .addBearerAuth() // 👈 for JWT
+    .build();
 
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      transform: true,
-    }),
-  );
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('swagger', app, document); // http://localhost:3000/swagger
 
-  const port = process.env.PORT || 3000;
-  await app.listen(port);
-  console.log(`🚀 App running at http://localhost:${port}`);
+  await app.listen(3000);
 }
 void bootstrap();
