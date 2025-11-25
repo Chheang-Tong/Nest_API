@@ -11,6 +11,9 @@ import { CartModule } from './cart/cart.module';
 import { CartItem } from './cart/entities';
 import { SellModule } from './sell/sell.module';
 import { Sell } from './sell/entities';
+import { PromotionModule } from './promotion/promotion.module';
+import { Promotion } from './promotion/entities';
+import { ReportsModule } from './reports/reports.module';
 
 @Module({
   imports: [
@@ -25,7 +28,7 @@ import { Sell } from './sell/entities';
         username: config.get<string>('DB_USER', 'devuser'),
         password: config.get<string>('DB_PASS', '123456'),
         database: config.get<string>('DB_NAME', 'nest_auth'),
-        entities: [User, Product, CartItem, Sell],
+        entities: [User, Product, CartItem, Sell, Promotion],
         synchronize: true,
       }),
     }),
@@ -35,6 +38,8 @@ import { Sell } from './sell/entities';
     ProductModule,
     CartModule,
     SellModule,
+    PromotionModule,
+    ReportsModule,
   ],
 })
 export class AppModule {}

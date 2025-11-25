@@ -1,30 +1,39 @@
 // src/sell/sell.service.ts
 import {
-  BadRequestException,
   Injectable,
   NotFoundException,
+  BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CartItem } from '../cart/entities/cart-item.entities';
 import { Sell } from './entities';
-import { randomUUID } from 'crypto';
 import { Product } from '../product/entities';
+import { randomUUID } from 'crypto';
+import { PromotionService } from '../promotion/promotion.service'; // 👈 NEW
 
 @Injectable()
 export class SellService {
   constructor(
     @InjectRepository(Sell)
     private readonly sellRepo: Repository<Sell>,
+
     @InjectRepository(CartItem)
     private readonly cartRepo: Repository<CartItem>,
+
     @InjectRepository(Product)
     private readonly productRepo: Repository<Product>,
+
+    private readonly promoService: PromotionService, // 👈 inject promotion
   ) {}
 
   async checkout(
     cartUuid: string,
-  ): Promise<{ sellUuid: string; newCartUuid: string }> {
+    promotionCode?: string,
+  ): Promise<{
+    sellUuid: string;
+    newCartUuid: string;
+  }> {
     const items = await this.cartRepo.find({
       where: { cartUuid },
       relations: ['user', 'product'],
@@ -46,30 +55,37 @@ export class SellService {
       }
     }
 
-    // 2) compute total
+    // 2) base total
     const total = items.reduce(
       (sum, item) => sum + Number(item.product.price) * item.quantity,
       0,
     );
 
-    // 3) create Sell record
+    // 3) apply promotion from DB
+    const { promotion, discountDollar, discountPercent, finalTotal } =
+      await this.promoService.applyPromotion(total, promotionCode);
+
+    // 4) create Sell record
     const sell = this.sellRepo.create({
       user,
       cartUuid,
       total,
+      promotionCode: promotion?.code ?? null,
+      discountDollar,
+      discountPercent,
+      finalTotal,
     });
+
     const saved = await this.sellRepo.save(sell);
 
-    // 4) decrease stock
+    // 5) decrease stock
     for (const item of items) {
       const product = item.product;
       product.stock -= item.quantity;
     }
     await this.productRepo.save(items.map((i) => i.product));
 
-    // 🔸 we keep cart items for report, so DON'T delete them
-    // await this.cartRepo.delete({ cartUuid });  // leave commented
-
+    // ⚠ we keep cart items so report can read them
     const newCartUuid = randomUUID();
 
     return {
@@ -78,7 +94,7 @@ export class SellService {
     };
   }
 
-  // report by sell UUID
+  // report by sell UUID (now includes promotion info)
   async getSellReport(sellUuid: string) {
     const sell = await this.sellRepo.findOne({
       where: { id: sellUuid },
@@ -97,6 +113,10 @@ export class SellService {
       user_id: sell.user.id,
       user_name: sell.user.name,
       total: Number(sell.total),
+      promotion_code: sell.promotionCode,
+      discount_dollar: Number(sell.discountDollar ?? 0),
+      discount_percent: Number(sell.discountPercent ?? 0),
+      final_total: Number(sell.finalTotal ?? sell.total),
       createdAt: sell.createdAt,
       items: items.map((i) => ({
         productId: i.product.id,
