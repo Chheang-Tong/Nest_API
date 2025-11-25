@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entities';
@@ -38,11 +38,14 @@ export class UsersService {
     return this.usersRepo.save(user);
   }
 
-  // 🔹 for profile updates (from controller)
-  async updateUser(userId: number, dto: UpdateUserDto): Promise<Partial<User>> {
+  // 🔹 For profile updates (current logged-in user)
+  async updateOwnProfile(
+    userId: number,
+    dto: UpdateUserDto,
+  ): Promise<Partial<User>> {
     const user = await this.usersRepo.findOne({ where: { id: userId } });
     if (!user) {
-      throw new Error('User not found');
+      throw new NotFoundException('User not found');
     }
 
     if (dto.email !== undefined) user.email = dto.email;
@@ -59,7 +62,28 @@ export class UsersService {
     };
   }
 
-  // 🔹 for internal updates (OTP etc.)
+  // 🔹 For admin: update *other* user by id
+  async updateUserById(id: number, dto: UpdateUserDto): Promise<Partial<User>> {
+    const user = await this.usersRepo.findOne({ where: { id } });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (dto.email !== undefined) user.email = dto.email;
+    if (dto.phoneNumber !== undefined) user.phoneNumber = dto.phoneNumber;
+    if (dto.name !== undefined) user.name = dto.name;
+
+    const saved = await this.usersRepo.save(user);
+    return {
+      id: saved.id,
+      email: saved.email,
+      phoneNumber: saved.phoneNumber,
+      name: saved.name,
+      createdAt: saved.createdAt,
+    };
+  }
+
+  // 🔹 internal updates (OTP etc.)
   async saveUser(user: User): Promise<User> {
     return this.usersRepo.save(user);
   }
@@ -68,6 +92,22 @@ export class UsersService {
     return this.usersRepo.find({
       select: ['id', 'email', 'phoneNumber', 'name', 'createdAt'],
     });
+  }
+  //Delete user by id
+  async deleteUser(id: number): Promise<{ message: string }> {
+    const user = await this.usersRepo.findOne({ where: { id } });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    await this.usersRepo.remove(user);
+    return { message: 'User deleted successfully' };
+  }
+  async deleteUsers(id: number): Promise<{ message: string }> {
+    const result = await this.usersRepo.delete(id);
+    if (result.affected === 0) {
+      throw new NotFoundException('User not found');
+    }
+    return { message: 'User deleted successfully' };
   }
 
   async clearOtp(user: User): Promise<User> {
