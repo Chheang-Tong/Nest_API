@@ -1,45 +1,46 @@
-// import { NestFactory } from '@nestjs/core';
-// import { AppModule } from './app.module';
-// import { ValidationPipe } from '@nestjs/common';
-
-// import { join } from 'path';
-// import * as express from 'express';
-// async function bootstrap() {
-//   const app = await NestFactory.create(AppModule);
-
-//   app.use('/uploads', express.static(join(__dirname, '..', 'uploads')));
-
-//   app.useGlobalPipes(
-//     new ValidationPipe({
-//       whitelist: true,
-//       forbidNonWhitelisted: true,
-//       transform: true,
-//     }),
-//   );
-
-//   const port = process.env.PORT || 3000;
-//   await app.listen(port);
-//   console.log(`🚀 App running at http://localhost:${port}`);
-// }
-// void bootstrap();
-
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { ValidationPipe } from '@nestjs/common';
+import { join } from 'path';
+import * as express from 'express';
+
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  const config = new DocumentBuilder()
+  // Serve static files (product images, etc.)
+  app.use('/uploads', express.static(join(__dirname, '..', 'uploads')));
+
+  // Global validation
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
+  );
+
+  // -------------------------
+  // 🚀 SWAGGER CONFIGURATION
+  // -------------------------
+  const swaggerConfig = new DocumentBuilder()
     .setTitle('Pepper Shop API')
-    .setDescription('API for products, cart, sell, promotion, reports')
+    .setDescription(
+      'API documentation for products, cart, sell, promotion, reports',
+    )
     .setVersion('1.0')
-    .addBearerAuth() // 👈 for JWT
+    .addBearerAuth() // 👈 Enable JWT token input
     .build();
 
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('swagger', app, document); // http://localhost:3000/swagger
+  const swaggerDoc = SwaggerModule.createDocument(app, swaggerConfig);
+  SwaggerModule.setup('swagger', app, swaggerDoc); // http://localhost:3000/swagger
 
-  await app.listen(3000);
+  const port = process.env.PORT || 3000;
+
+  await app.listen(port);
+  console.log(`🚀 App running at http://localhost:${port}`);
+  console.log(`📘 Swagger Docs: http://localhost:${port}/swagger`);
 }
+
 void bootstrap();

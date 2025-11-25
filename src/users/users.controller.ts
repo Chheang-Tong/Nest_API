@@ -12,12 +12,21 @@ import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../auth/guard';
 import { GetUser } from '../auth/decorator/get-user.decorator';
 import { UpdateUserDto } from './dto/update-user.dto';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiParam,
+  ApiTags,
+} from '@nestjs/swagger';
 
+@ApiTags('Users')
+@ApiBearerAuth()
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   // GET /users/all  (admin-ish; still protected by JWT)
+  @ApiOperation({ summary: 'Get all users (admin only)' })
   @UseGuards(JwtAuthGuard)
   @Get('all')
   findAll() {
@@ -25,6 +34,7 @@ export class UsersController {
   }
 
   // GET /users/me
+  @ApiOperation({ summary: 'Get own user profile' })
   @UseGuards(JwtAuthGuard)
   @Get('me')
   async findMe(@GetUser('id') userId: number) {
@@ -41,11 +51,15 @@ export class UsersController {
   }
 
   // PATCH /users/me
+  @ApiOperation({ summary: 'Update own user profile' })
   @UseGuards(JwtAuthGuard)
   @Patch('me')
   updateMe(@GetUser('id') userId: number, @Body() dto: UpdateUserDto) {
     return this.usersService.updateOwnProfile(userId, dto);
   }
+  // Admin routes to manage users by ID
+  @ApiOperation({ summary: 'Get user by ID (admin only)' })
+  @ApiParam({ name: 'id', type: Number, description: 'User ID' })
   @UseGuards(JwtAuthGuard)
   @Patch(':id')
   updateUserById(
@@ -55,6 +69,8 @@ export class UsersController {
     return this.usersService.updateUserById(id, dto);
   }
 
+  @ApiOperation({ summary: 'Delete user by ID (admin only)' })
+  @ApiParam({ name: 'id', type: Number, description: 'User ID' })
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
   deleteUserById(@Param('id', ParseIntPipe) id: number) {
