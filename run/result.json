@@ -1,0 +1,34 @@
+{
+  "uuid": "xyz-123-abc-456-def",
+  "items": [
+    {
+      "id": 4,
+      "productId": 2,
+      "name": "Kandal Peppers",
+      "image": "http://localhost:3000/uploads/Kandal_Peppers.png",
+      "price": 13,
+      "quantity": 3,
+      "lineTotal": 39
+    },
+    {
+      "id": 3,
+      "productId": 1,
+      "name": "Kampot Pepper",
+      "image": "http://localhost:3000/uploads/Kampot_Pepper.png",
+      "price": 13,
+      "quantity": 3,
+      "lineTotal": 39
+    }
+  ],
+  "summary": {
+    "cart_quantity": 6,
+    "cart_total": 78,
+    "user_id": 1,
+    "user_name": "John Doe",
+    "promotion_code": "SUMMER21",
+    "coupon": "10% OFF or 10$",
+    "discount_dollar": 0,
+    "discount_percent": 0,
+    "final_total": 78
+  }
+}
