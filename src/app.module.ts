@@ -14,6 +14,8 @@ import { Sell } from './sell/entities';
 import { PromotionModule } from './promotion/promotion.module';
 import { Promotion } from './promotion/entities';
 import { ReportsModule } from './reports/reports.module';
+import { APP_GUARD } from '@nestjs/core';
+import { RolesGuard } from './auth/guard/roles.guard';
 
 @Module({
   imports: [
@@ -30,6 +32,8 @@ import { ReportsModule } from './reports/reports.module';
         database: config.get<string>('DB_NAME', 'nest_auth'),
         entities: [User, Product, CartItem, Sell, Promotion],
         synchronize: true,
+        provide: APP_GUARD,
+        useClass: RolesGuard,
       }),
     }),
     UsersModule,

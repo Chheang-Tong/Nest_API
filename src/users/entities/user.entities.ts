@@ -5,6 +5,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { Role } from '../../auth/enum';
 
 @Entity('users')
 export class User {
@@ -37,4 +38,7 @@ export class User {
 
   @UpdateDateColumn()
   updatedAt!: Date;
+
+  @Column({ type: 'enum', enum: Role, default: Role.USER })
+  role: Role;
 }

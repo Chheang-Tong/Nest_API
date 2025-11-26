@@ -18,6 +18,8 @@ import {
   ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
+import { Roles } from '../auth/decorator';
+import { Role } from '../auth/enum';
 
 @ApiTags('Users')
 @ApiBearerAuth()
@@ -29,6 +31,7 @@ export class UsersController {
   @ApiOperation({ summary: 'Get all users (admin only)' })
   @UseGuards(JwtAuthGuard)
   @Get('all')
+  @Roles(Role.ADMIN)
   findAll() {
     return this.usersService.findAll();
   }
